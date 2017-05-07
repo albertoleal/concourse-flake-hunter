@@ -11,7 +11,21 @@ concourse-flake-hunter
 
 ```
 
-##Example 
+## Example 
 
-`concourse-flake-hunter -c https://my.concourse.com -u <username> -p <password> -n <team-name> search "connection reset"`
 
+The following command will search for "connection reset" in the last 150 builds run:
+
+`concourse-flake-hunter -c https://my.concourse.com -u <username> -p <password> -n <team-name> search --limit 150 "connection reset"`
+
+
+The outlook will look like the following:
+
+
+```
++----------------------------+-----------------------------------+
+|       PIPELINE/JOB         |            BUILD URL              |
++----------------------------+-----------------------------------+
+|  product/unit-test         |  https://www.example.org/build/1  |
++----------------------------+-----------------------------------+
+```
