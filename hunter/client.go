@@ -28,15 +28,18 @@ type client struct {
 	username     string
 	password     string
 	team         string
+
+	concourseCli concourse.Client
 }
 
 func NewClient(concourseURL, username, password, team string) *client {
-	return &client{
+	c := &client{
 		concourseURL: concourseURL,
 		username:     username,
 		password:     password,
 		team:         team,
 	}
+	return c
 }
 
 func (c *client) ConcourseURL() string {
@@ -44,21 +47,19 @@ func (c *client) ConcourseURL() string {
 }
 
 func (c *client) Builds(page concourse.Page) ([]atc.Build, concourse.Pagination, error) {
-	concourseClient, err := c.concourseClient()
+	client, err := c.concourseClient()
 	if err != nil {
-		return nil, concourse.Pagination{}, err
+		return []atc.Build{}, concourse.Pagination{}, err
 	}
-
-	return concourseClient.Builds(page)
+	return client.Builds(page)
 }
 
 func (c *client) BuildEvents(buildID string) ([]byte, error) {
-	concourseClient, err := c.concourseClient()
+	client, err := c.concourseClient()
 	if err != nil {
 		return []byte{}, err
 	}
-
-	events, err := concourseClient.BuildEvents(buildID)
+	events, err := client.BuildEvents(buildID)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -94,6 +95,10 @@ func (c *client) BuildEvents(buildID string) ([]byte, error) {
 }
 
 func (c *client) concourseClient() (concourse.Client, error) {
+	if c.concourseCli != nil {
+		return c.concourseCli, nil
+	}
+
 	httpClient := &http.Client{
 		Transport: basicAuthTransport{
 			username: c.username,
@@ -120,7 +125,8 @@ func (c *client) concourseClient() (concourse.Client, error) {
 		Base:   transport,
 	}
 
-	return concourse.NewClient(c.concourseURL, &http.Client{Transport: transport}), nil
+	c.concourseCli = concourse.NewClient(c.concourseURL, &http.Client{Transport: transport})
+	return c.concourseCli, nil
 }
 
 type basicAuthTransport struct {

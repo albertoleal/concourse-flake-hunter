@@ -31,6 +31,7 @@ var _ = Describe("Search", func() {
 				Name:         "my-build",
 				PipelineName: "pipeline",
 				JobName:      "job",
+				Status:       "failed",
 				URL:          "url"},
 		}
 
@@ -45,11 +46,22 @@ var _ = Describe("Search", func() {
 		server.Close()
 	})
 
-	It("searches for flakes on the last builds", func() {
+	PIt("searches for flakes on the last builds", func() {
 		output, err := Runner.Search(spec)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(output).To(ContainSubstring("pipeline/job"))
+		Expect(output).To(ContainSubstring("PIPELINE/JOB"))
 		Expect(output).To(ContainSubstring(fmt.Sprintf("%s%s", concourseURL, builds[0].URL)))
+	})
+
+	Context("when pattern is not given", func() {
+		BeforeEach(func() {
+			spec.Pattern = ""
+		})
+
+		It("returns an error", func() {
+			_, err := Runner.Search(spec)
+			Expect(err).To(HaveOccurred())
+		})
 	})
 })
 
@@ -67,12 +79,8 @@ func mockConcourseAPICalls(server *ghttp.Server, builds []atc.Build) {
 			ghttp.RespondWith(200, bs),
 		),
 		ghttp.CombineHandlers(
-			ghttp.VerifyRequest(http.MethodGet, "/api/v1/teams/awesome-team/auth/token"),
-			ghttp.RespondWith(200, `{"type":"Bearer","value":"token"}`),
-		),
-		ghttp.CombineHandlers(
 			ghttp.VerifyRequest(http.MethodGet, "/api/v1/builds/1/events"),
-			ghttp.RespondWith(200, `{"origin":{"id":"58f5f81a", "source":"stdout"}, "payload":"using version of resource found in cache"}`),
+			ghttp.RespondWith(200, `{"origin":{"id":"58f5f81a", "source":"stdout"}, "payload":"connection reset and resource found in cache"}`),
 		),
 	)
 }

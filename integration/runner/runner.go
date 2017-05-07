@@ -2,7 +2,6 @@ package runner
 
 import (
 	"bytes"
-	"fmt"
 	"os/exec"
 	"strings"
 )
@@ -21,8 +20,7 @@ func (r Runner) RunSubcommand(subcommand string, args ...string) (string, error)
 	cmd.Stdout = stdoutBuffer
 
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("stdoutBuffer.String() = %+v\n", stdoutBuffer.String())
-		return "", err
+		return err.Error(), err
 	}
 
 	return strings.TrimSpace(stdoutBuffer.String()), nil
