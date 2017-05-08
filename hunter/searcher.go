@@ -69,7 +69,7 @@ func (s *Searcher) Search(spec SearchSpec) ([]Build, error) {
 			b := Build{build, concourseURL}
 			bs = append(bs, b)
 		}
-
+		//Debug: Still experimenting with this - I saw concourse failing when count is bigger than 500.
 		if count%100 == 0 {
 			time.Sleep(10 * time.Second)
 		}
