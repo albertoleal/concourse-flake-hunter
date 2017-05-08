@@ -71,7 +71,6 @@ func (s *Searcher) Search(spec SearchSpec) ([]Build, error) {
 		}
 
 		if count%100 == 0 {
-			fmt.Printf("finished count= %+v\n ...", count)
 			time.Sleep(10 * time.Second)
 		}
 		count = count + 1
