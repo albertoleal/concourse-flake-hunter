@@ -22,7 +22,9 @@ var _ = Describe("Searcher", func() {
 
 	BeforeEach(func() {
 		builds = []atc.Build{
-			atc.Build{ID: 1, Name: "my-build", URL: "/build-url"},
+			atc.Build{ID: 1, Name: "my-build", URL: "/build-url", Status: string(atc.StatusSucceeded)},
+			atc.Build{ID: 2, Name: "my-build", URL: "/build-url", Status: string(atc.StatusErrored)},
+			atc.Build{ID: 3, Name: "my-build", URL: "/build-url", Status: string(atc.StatusFailed)},
 		}
 
 		fakeClient = new(hunterfakes.FakeClient)
@@ -39,9 +41,16 @@ var _ = Describe("Searcher", func() {
 				Pattern: "connection reset",
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeClient.BuildsCallCount()).To(Equal(1))
 			concourseURL := fmt.Sprintf("%s%s", fakeClient.ConcourseURL(), builds[0].URL)
 			Expect(bs[0].ConcourseURL).To(Equal(concourseURL))
+		})
+
+		It("searches only for succeeded and failed builds", func() {
+			_, err := searcher.Search(hunter.SearchSpec{
+				Pattern: "connection reset",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeClient.BuildEventsCallCount()).To(Equal(2))
 		})
 
 		Context("when faild to get last builds", func() {

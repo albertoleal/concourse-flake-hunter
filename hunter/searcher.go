@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	BUILD_ABORTED    = "aborted"
 	STATUS_FORBIDDEN = "forbidden"
 )
 
@@ -46,7 +45,7 @@ func (s *Searcher) Search(spec SearchSpec) ([]Build, error) {
 	bs := []Build{}
 	count := 1
 	for _, build := range builds {
-		if build.Status == BUILD_ABORTED {
+		if build.Status != string(atc.StatusSucceeded) && build.Status != string(atc.StatusFailed) {
 			continue
 		}
 
