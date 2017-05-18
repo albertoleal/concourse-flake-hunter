@@ -1,10 +1,10 @@
-package hunter_test
+package fly_test
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/albertoleal/concourse-flake-hunter/hunter"
+	"github.com/albertoleal/concourse-flake-hunter/fly"
 	"github.com/concourse/go-concourse/concourse"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,7 +15,7 @@ var _ = Describe("Client", func() {
 	var (
 		server *ghttp.Server
 
-		client       hunter.Client
+		client       fly.Client
 		concourseURL string
 		username     string
 		password     string
@@ -32,7 +32,7 @@ var _ = Describe("Client", func() {
 	})
 
 	JustBeforeEach(func() {
-		client = hunter.NewClient(concourseURL, username, password, team)
+		client = fly.NewClient(concourseURL, username, password, team)
 	})
 
 	AfterEach(func() {

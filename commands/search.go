@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/albertoleal/concourse-flake-hunter/fly"
 	"github.com/albertoleal/concourse-flake-hunter/hunter"
 	"github.com/urfave/cli"
 )
@@ -26,7 +27,7 @@ var SearchCommand = cli.Command{
 			return cli.NewExitError("need to provide a pattern", 1)
 		}
 
-		client := ctx.App.Metadata["client"].(hunter.Client)
+		client := ctx.App.Metadata["client"].(fly.Client)
 
 		searcher := hunter.NewSearcher(client)
 		spec := hunter.SearchSpec{

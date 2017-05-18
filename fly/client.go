@@ -1,4 +1,4 @@
-package hunter
+package fly
 
 import (
 	"bytes"

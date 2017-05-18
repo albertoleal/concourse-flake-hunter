@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/albertoleal/concourse-flake-hunter/commands"
-	hunterpkg "github.com/albertoleal/concourse-flake-hunter/hunter"
+	"github.com/albertoleal/concourse-menu/fly"
 	"github.com/urfave/cli"
 )
 
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	hunter.Before = func(ctx *cli.Context) error {
-		client := hunterpkg.NewClient(ctx.String("concourse-url"),
+		client := fly.NewClient(ctx.String("concourse-url"),
 			ctx.String("username"),
 			ctx.String("password"),
 			ctx.String("team-name"),

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/albertoleal/concourse-flake-hunter/fly"
 	"github.com/concourse/atc"
 	"github.com/concourse/go-concourse/concourse"
 )
@@ -21,7 +22,7 @@ type SearchSpec struct {
 }
 
 type Searcher struct {
-	client Client
+	client fly.Client
 }
 
 type Build struct {
@@ -30,7 +31,7 @@ type Build struct {
 	ConcourseURL string
 }
 
-func NewSearcher(client Client) *Searcher {
+func NewSearcher(client fly.Client) *Searcher {
 	return &Searcher{
 		client: client,
 	}

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/albertoleal/concourse-flake-hunter/fly/flyfakes"
 	"github.com/albertoleal/concourse-flake-hunter/hunter"
-	"github.com/albertoleal/concourse-flake-hunter/hunter/hunterfakes"
 	"github.com/concourse/atc"
 	"github.com/concourse/go-concourse/concourse"
 
@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("Searcher", func() {
 	var (
-		fakeClient *hunterfakes.FakeClient
+		fakeClient *flyfakes.FakeClient
 		searcher   *hunter.Searcher
 		builds     []atc.Build
 	)
@@ -27,7 +27,7 @@ var _ = Describe("Searcher", func() {
 			atc.Build{ID: 3, Name: "my-build", URL: "/build-url", Status: string(atc.StatusFailed)},
 		}
 
-		fakeClient = new(hunterfakes.FakeClient)
+		fakeClient = new(flyfakes.FakeClient)
 		searcher = hunter.NewSearcher(fakeClient)
 
 		fakeClient.ConcourseURLReturns("https://concourse.io")
