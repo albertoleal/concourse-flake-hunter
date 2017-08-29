@@ -107,7 +107,7 @@ func (c *client) concourseClient() (concourse.Client, error) {
 		},
 	}
 
-	client := concourse.NewClient(c.concourseURL, httpClient)
+	client := concourse.NewClient(c.concourseURL, httpClient, false)
 	t := client.Team(c.team)
 	token, err := t.AuthToken()
 	if err != nil {
@@ -125,7 +125,7 @@ func (c *client) concourseClient() (concourse.Client, error) {
 		Base:   transport,
 	}
 
-	c.concourseCli = concourse.NewClient(c.concourseURL, &http.Client{Transport: transport})
+	c.concourseCli = concourse.NewClient(c.concourseURL, &http.Client{Transport: transport}, false)
 	return c.concourseCli, nil
 }
 
