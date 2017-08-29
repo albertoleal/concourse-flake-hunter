@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/albertoleal/concourse-flake-hunter/commands"
-	"github.com/albertoleal/concourse-menu/fly"
+	"github.com/albertoleal/concourse-flake-hunter/fly"
 	"github.com/urfave/cli"
 )
 
