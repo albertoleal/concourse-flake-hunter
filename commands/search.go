@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/albertoleal/concourse-flake-hunter/fly"
 	"github.com/albertoleal/concourse-flake-hunter/hunter"
@@ -34,25 +33,16 @@ var SearchCommand = cli.Command{
 			Pattern: ctx.Args().First(),
 			Limit:   ctx.Int("limit"),
 		}
-		builds, err := searcher.Search(spec)
-		if err != nil {
-			return cli.NewExitError(err.Error(), 1)
+		builds := searcher.Search(spec)
+
+		fmt.Printf("+%-32s+%s\n", "----------------------------------", "-----------------------------------------------------")
+		fmt.Printf("| %-32s | %s\n", "JOB", "URL")
+		fmt.Printf("+%-32s+%s\n", "----------------------------------", "-----------------------------------------------------")
+
+		for build := range builds {
+			fmt.Printf("| %-32s | %s\n", build.PipelineName+"/"+build.JobName, build.ConcourseURL)
 		}
 
-		table := &Table{
-			Content: [][]string{},
-			Header:  []string{"pipeline/job", "build url"},
-		}
-
-		for _, build := range builds {
-			line := []string{}
-			line = append(line, fmt.Sprintf("%s/%s", build.PipelineName, build.JobName))
-			line = append(line, fmt.Sprintf("%s", build.ConcourseURL))
-			table.Content = append(table.Content, line)
-		}
-
-		context := &Context{Stdout: os.Stdout}
-		table.Render(context)
 		return nil
 	},
 }

@@ -1,7 +1,6 @@
 package hunter
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -37,16 +36,40 @@ func NewSearcher(client fly.Client) *Searcher {
 	}
 }
 
-func (s *Searcher) Search(spec SearchSpec) ([]Build, error) {
-	builds, _, err := s.client.Builds(concourse.Page{Limit: spec.Limit})
+func (s *Searcher) Search(spec SearchSpec) chan Build {
+	ch := make(chan Build, 100)
+	go s.getBuildsFromPage(ch, concourse.Page{Limit: 300}, spec)
+	return ch
+}
+
+func (s *Searcher) getBuildsFromPage(ch chan Build, page concourse.Page, spec SearchSpec) {
+	before := time.Now()
+	builds, pages, err := s.client.Builds(page)
+	duration := time.Since(before)
+	fmt.Println("Response time", duration/time.Millisecond)
+
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	bs := []Build{}
-	count := 1
+	go s.processBuilds(ch, builds, spec)
+
+	if pages.Next == nil {
+		fmt.Println("No More Pages")
+		return
+	}
+
+	time.Sleep(time.Second)
+
+	s.getBuildsFromPage(ch, *pages.Next, spec)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (s *Searcher) processBuilds(ch chan Build, builds []atc.Build, spec SearchSpec) {
 	for _, build := range builds {
-		if build.Status != string(atc.StatusSucceeded) && build.Status != string(atc.StatusFailed) {
+		if build.Status != string(atc.StatusFailed) {
 			continue
 		}
 
@@ -56,24 +79,20 @@ func (s *Searcher) Search(spec SearchSpec) ([]Build, error) {
 			if err.Error() == STATUS_FORBIDDEN {
 				continue
 			}
-			return []Build{}, err
+			println(err.Error())
+			continue
 		}
 
 		ok, err := regexp.Match(spec.Pattern, events)
 		if err != nil {
-			return []Build{}, errors.New("failed trying to match pattern given")
+			println("failed trying to match pattern", err.Error())
+			continue
 		}
 
 		if ok {
 			concourseURL := fmt.Sprintf("%s%s", s.client.ConcourseURL(), build.URL)
 			b := Build{build, concourseURL}
-			bs = append(bs, b)
+			ch <- b
 		}
-		//Debug: Still experimenting with this - I saw concourse failing when count is bigger than 500.
-		if count%100 == 0 {
-			time.Sleep(10 * time.Second)
-		}
-		count = count + 1
 	}
-	return bs, nil
 }
