@@ -58,15 +58,19 @@ func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page,
 	go s.processBuilds(flakesChan, buildsChan, spec)
 	go s.processBuilds(flakesChan, buildsChan, spec)
 	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
 
 	for i := 0; pages.Next != nil; page, i = *pages.Next, i+1 {
 		builds, pages, err = s.client.Builds(page)
-		// retrier := retrier.New(retrier.ConstantBackoff(2, 5*time.Second), nil)
-
-		// err = retrier.Run(func() error {
-		// 	return err
-		// })
-
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("Backing off")
@@ -74,16 +78,7 @@ func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page,
 			continue
 		}
 
-		buildsretrier := retrier.New(retrier.ConstantBackoff(20, 500*time.Millisecond), nil)
-var (
-  pid = -1
-  err error
-)
-retrier.Run(func() error {
-  pid, err = parsePid(pidFilePath)
-  return err
-})Chan <- builds
-		fmt.Println("batch", i, "builds processed", i*300, "time elapsed ", time.Since(s.start))
+		buildsChan <- builds
 
 		if i > 0 && i%30 == 0 {
 			// fmt.Println("Backing off")

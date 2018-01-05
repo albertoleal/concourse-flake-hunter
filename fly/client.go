@@ -3,7 +3,6 @@ package fly
 import (
 	"bytes"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -47,38 +46,12 @@ func (c *client) ConcourseURL() string {
 	return c.concourseURL
 }
 
-type BuildResult struct {
-	builds []atc.Build
-	pages  concourse.Pagination
-	err    error
-}
-
 func (c *client) Builds(page concourse.Page) ([]atc.Build, concourse.Pagination, error) {
-	ch := make(chan BuildResult)
-
-	go func() {
-		client, err := c.concourseClient()
-		if err != nil {
-			ch <- BuildResult{err: err}
-			return
-		}
-
-		builds, pagination, err := client.Builds(page)
-		ch <- BuildResult{
-			builds: builds,
-			pages:  pagination,
-			err:    err,
-		}
-	}()
-
-	fmt.Println("select")
-	select {
-	case res := <-ch:
-		return res.builds, res.pages, res.err
-	case <-time.After(time.Second):
-		fmt.Println("TIMEOUT")
-		return []atc.Build{}, concourse.Pagination{}, errors.New("timeout")
+	client, err := c.concourseClient()
+	if err != nil {
+		return []atc.Build{}, concourse.Pagination{}, err
 	}
+	return client.Builds(page)
 }
 
 func (c *client) BuildEvents(buildID string) ([]byte, error) {
@@ -90,6 +63,7 @@ func (c *client) BuildEvents(buildID string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	defer events.Close()
 
 	buf := bytes.NewBuffer([]byte{})
 	var buildConfig event.TaskConfig
@@ -118,7 +92,7 @@ func (c *client) BuildEvents(buildID string) ([]byte, error) {
 			fmt.Fprintf(buf, "%s\n", e.Message)
 		}
 	}
-	return buf.Bytes(), events.Close()
+	// return buf.Bytes(), events.Close()
 }
 
 func (c *client) concourseClient() (concourse.Client, error) {
