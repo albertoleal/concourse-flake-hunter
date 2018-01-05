@@ -42,57 +42,57 @@ func (s *Searcher) Search(spec SearchSpec) chan Build {
 	return ch
 }
 
-func (s *Searcher) getBuildsFromPage(ch chan Build, page concourse.Page, spec SearchSpec) {
-	before := time.Now()
-	builds, pages, err := s.client.Builds(page)
-	duration := time.Since(before)
-	fmt.Println("Response time", duration/time.Millisecond)
+func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page, spec SearchSpec) {
+	var (
+		buildsChan = make(chan []atc.Build, 2)
+		pages      = concourse.Pagination{Next: &page}
+		builds     []atc.Build
+		err        error
+	)
 
-	if err != nil {
-		panic(err)
-	}
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
 
-	go s.processBuilds(ch, builds, spec)
+	for ; pages.Next != nil; page = *pages.Next {
+		builds, pages, err = s.client.Builds(page)
+		if err != nil {
+			panic(err)
+		}
 
-	if pages.Next == nil {
-		fmt.Println("No More Pages")
-		return
-	}
+		buildsChan <- builds
 
-	time.Sleep(time.Second)
-
-	s.getBuildsFromPage(ch, *pages.Next, spec)
-	if err != nil {
-		panic(err)
+		time.Sleep(time.Second)
 	}
 }
 
-func (s *Searcher) processBuilds(ch chan Build, builds []atc.Build, spec SearchSpec) {
-	for _, build := range builds {
-		if build.Status != string(atc.StatusFailed) {
-			continue
-		}
-
-		events, err := s.client.BuildEvents(strconv.Itoa(build.ID))
-		if err != nil {
-			// Not sure why, but concourse.Builds returns builds from other teams
-			if err.Error() == STATUS_FORBIDDEN {
+func (s *Searcher) processBuilds(flakesCh chan Build, buildsCh chan []atc.Build, spec SearchSpec) {
+	for builds := range buildsCh {
+		for _, build := range builds {
+			if build.Status != string(atc.StatusFailed) {
 				continue
 			}
-			println(err.Error())
-			continue
-		}
 
-		ok, err := regexp.Match(spec.Pattern, events)
-		if err != nil {
-			println("failed trying to match pattern", err.Error())
-			continue
-		}
+			events, err := s.client.BuildEvents(strconv.Itoa(build.ID))
+			if err != nil {
+				// Not sure why, but concourse.Builds returns builds from other teams
+				if err.Error() == STATUS_FORBIDDEN {
+					continue
+				}
+				println(err.Error())
+				continue
+			}
 
-		if ok {
-			concourseURL := fmt.Sprintf("%s%s", s.client.ConcourseURL(), build.URL)
-			b := Build{build, concourseURL}
-			ch <- b
+			ok, err := regexp.Match(spec.Pattern, events)
+			if err != nil {
+				println("failed trying to match pattern", err.Error())
+				continue
+			}
+
+			if ok {
+				concourseURL := fmt.Sprintf("%s%s", s.client.ConcourseURL(), build.URL)
+				b := Build{build, concourseURL}
+				flakesCh <- b
+			}
 		}
 	}
 }
