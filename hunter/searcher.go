@@ -22,6 +22,7 @@ type SearchSpec struct {
 
 type Searcher struct {
 	client fly.Client
+	start  time.Time
 }
 
 type Build struct {
@@ -33,6 +34,7 @@ type Build struct {
 func NewSearcher(client fly.Client) *Searcher {
 	return &Searcher{
 		client: client,
+		start:  time.Now(),
 	}
 }
 
@@ -44,7 +46,7 @@ func (s *Searcher) Search(spec SearchSpec) chan Build {
 
 func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page, spec SearchSpec) {
 	var (
-		buildsChan = make(chan []atc.Build, 2)
+		buildsChan = make(chan []atc.Build)
 		pages      = concourse.Pagination{Next: &page}
 		builds     []atc.Build
 		err        error
@@ -52,16 +54,42 @@ func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page,
 
 	go s.processBuilds(flakesChan, buildsChan, spec)
 	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
+	go s.processBuilds(flakesChan, buildsChan, spec)
 
-	for ; pages.Next != nil; page = *pages.Next {
+	for i := 0; pages.Next != nil; page, i = *pages.Next, i+1 {
 		builds, pages, err = s.client.Builds(page)
+		// retrier := retrier.New(retrier.ConstantBackoff(2, 5*time.Second), nil)
+
+		// err = retrier.Run(func() error {
+		// 	return err
+		// })
+
 		if err != nil {
-			panic(err)
+			fmt.Println(err.Error())
+			fmt.Println("Backing off")
+			time.Sleep(time.Second * 5)
+			continue
 		}
 
-		buildsChan <- builds
+		buildsretrier := retrier.New(retrier.ConstantBackoff(20, 500*time.Millisecond), nil)
+var (
+  pid = -1
+  err error
+)
+retrier.Run(func() error {
+  pid, err = parsePid(pidFilePath)
+  return err
+})Chan <- builds
+		fmt.Println("batch", i, "builds processed", i*300, "time elapsed ", time.Since(s.start))
 
-		time.Sleep(time.Second)
+		if i > 0 && i%30 == 0 {
+			// fmt.Println("Backing off")
+			// time.Sleep(5 * time.Second)
+		}
+
 	}
 }
 
