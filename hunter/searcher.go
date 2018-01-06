@@ -1,10 +1,10 @@
 package hunter
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
-	"time"
 
 	"github.com/albertoleal/concourse-flake-hunter/fly"
 	"github.com/concourse/atc"
@@ -12,17 +12,16 @@ import (
 )
 
 const (
-	STATUS_FORBIDDEN = "forbidden"
+	StatusForbidden = "forbidden"
+	WorkerPoolSize  = 8
 )
 
 type SearchSpec struct {
 	Pattern string
-	Limit   int
 }
 
 type Searcher struct {
 	client fly.Client
-	start  time.Time
 }
 
 type Build struct {
@@ -34,14 +33,13 @@ type Build struct {
 func NewSearcher(client fly.Client) *Searcher {
 	return &Searcher{
 		client: client,
-		start:  time.Now(),
 	}
 }
 
 func (s *Searcher) Search(spec SearchSpec) chan Build {
-	ch := make(chan Build, 100)
-	go s.getBuildsFromPage(ch, concourse.Page{Limit: 300}, spec)
-	return ch
+	flakesChan := make(chan Build, 100)
+	go s.getBuildsFromPage(flakesChan, concourse.Page{Limit: 300}, spec)
+	return flakesChan
 }
 
 func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page, spec SearchSpec) {
@@ -52,70 +50,53 @@ func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page,
 		err        error
 	)
 
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
-	go s.processBuilds(flakesChan, buildsChan, spec)
+	for i := 0; i < WorkerPoolSize; i++ {
+		go s.processBuilds(flakesChan, buildsChan, spec)
+	}
 
 	for i := 0; pages.Next != nil; page, i = *pages.Next, i+1 {
 		builds, pages, err = s.client.Builds(page)
 		if err != nil {
-			fmt.Println(err.Error())
-			fmt.Println("Backing off")
-			time.Sleep(time.Second * 5)
+			println(err.Error())
 			continue
 		}
 
 		buildsChan <- builds
-
-		if i > 0 && i%30 == 0 {
-			// fmt.Println("Backing off")
-			// time.Sleep(5 * time.Second)
-		}
-
 	}
 }
 
 func (s *Searcher) processBuilds(flakesCh chan Build, buildsCh chan []atc.Build, spec SearchSpec) {
 	for builds := range buildsCh {
 		for _, build := range builds {
-			if build.Status != string(atc.StatusFailed) {
-				continue
-			}
-
-			events, err := s.client.BuildEvents(strconv.Itoa(build.ID))
-			if err != nil {
-				// Not sure why, but concourse.Builds returns builds from other teams
-				if err.Error() == STATUS_FORBIDDEN {
-					continue
-				}
+			if err := s.processBuild(flakesCh, build, spec); err != nil {
 				println(err.Error())
 				continue
 			}
-
-			ok, err := regexp.Match(spec.Pattern, events)
-			if err != nil {
-				println("failed trying to match pattern", err.Error())
-				continue
-			}
-
-			if ok {
-				concourseURL := fmt.Sprintf("%s%s", s.client.ConcourseURL(), build.URL)
-				b := Build{build, concourseURL}
-				flakesCh <- b
-			}
 		}
 	}
+}
+
+func (s *Searcher) processBuild(flakesCh chan Build, build atc.Build, spec SearchSpec) error {
+	if build.Status != string(atc.StatusFailed) {
+		// We only care about failed builds
+		return nil
+	}
+
+	events, err := s.client.BuildEvents(strconv.Itoa(build.ID))
+	// Not sure why, but concourse.Builds returns builds from other teams
+	if err != nil && err.Error() != StatusForbidden {
+		return errors.New("Failed to get build events")
+	}
+
+	ok, err := regexp.Match(spec.Pattern, events)
+	if err != nil {
+		return fmt.Errorf("Error while matching build output against pattern '%s'", spec.Pattern)
+	}
+
+	if ok {
+		concourseURL := fmt.Sprintf("%s%s", s.client.ConcourseURL(), build.URL)
+		b := Build{build, concourseURL}
+		flakesCh <- b
+	}
+	return nil
 }

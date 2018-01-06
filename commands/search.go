@@ -13,14 +13,6 @@ var SearchCommand = cli.Command{
 	Usage:       "search <arguments>",
 	Description: "Searches for flakes",
 
-	Flags: []cli.Flag{
-		cli.IntFlag{
-			Name:  "limit, l",
-			Usage: "Limit number of builds to check",
-			Value: 50,
-		},
-	},
-
 	Action: func(ctx *cli.Context) error {
 		if ctx.Args().First() == "" {
 			return cli.NewExitError("need to provide a pattern", 1)
@@ -31,7 +23,6 @@ var SearchCommand = cli.Command{
 		searcher := hunter.NewSearcher(client)
 		spec := hunter.SearchSpec{
 			Pattern: ctx.Args().First(),
-			Limit:   ctx.Int("limit"),
 		}
 		builds := searcher.Search(spec)
 

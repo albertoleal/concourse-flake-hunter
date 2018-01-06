@@ -92,7 +92,6 @@ func (c *client) BuildEvents(buildID string) ([]byte, error) {
 			fmt.Fprintf(buf, "%s\n", e.Message)
 		}
 	}
-	// return buf.Bytes(), events.Close()
 }
 
 func (c *client) concourseClient() (concourse.Client, error) {
