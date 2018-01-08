@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/albertoleal/concourse-flake-hunter/fly"
 	"github.com/albertoleal/concourse-flake-hunter/hunter"
@@ -26,14 +27,25 @@ var SearchCommand = cli.Command{
 		}
 		builds := searcher.Search(spec)
 
-		fmt.Printf("+%-32s+%s\n", "----------------------------------", "-----------------------------------------------------")
-		fmt.Printf("| %-32s | %s\n", "JOB", "URL")
-		fmt.Printf("+%-32s+%s\n", "----------------------------------", "-----------------------------------------------------")
+		fmt.Printf("+-------+%-32s+%s\n", "----------------------------------", "-----------------------------------------------------")
+		fmt.Printf("| %-5s | %-32s | %s\n", "Ended", "Job", "Url")
+		fmt.Printf("+-------+%-32s+%s\n", "----------------------------------", "-----------------------------------------------------")
 
 		for build := range builds {
-			fmt.Printf("| %-32s | %s\n", build.PipelineName+"/"+build.JobName, build.ConcourseURL)
+			fmt.Printf("| %-5s | %-32s | %s\n", timeSince(build.EndTime), build.PipelineName+"/"+build.JobName, build.ConcourseURL)
 		}
 
 		return nil
 	},
+}
+
+func timeSince(timestamp int64) string {
+	t := time.Unix(timestamp, 0)
+	timeSince := time.Since(t)
+
+	hoursSince := timeSince / time.Hour
+	if hoursSince < 24 {
+		return fmt.Sprintf("%dh", hoursSince)
+	}
+	return fmt.Sprintf("%dd", hoursSince/24)
 }
