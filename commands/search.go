@@ -44,6 +44,9 @@ func timeSince(timestamp int64) string {
 	timeSince := time.Since(t)
 
 	hoursSince := timeSince / time.Hour
+	if hoursSince < 1 {
+		return fmt.Sprintf("%dm", timeSince/time.Minute)
+	}
 	if hoursSince < 24 {
 		return fmt.Sprintf("%dh", hoursSince)
 	}
