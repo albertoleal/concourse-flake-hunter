@@ -55,7 +55,7 @@ func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page,
 		go s.processBuilds(flakesChan, buildsChan, spec)
 	}
 
-	for i := 0; pages.Next != nil; page, i = *pages.Next, i+1 {
+	for ; pages.Next != nil; page = *pages.Next {
 		builds, pages, err = s.client.Builds(page)
 		if err != nil {
 			println(err.Error())
@@ -82,7 +82,7 @@ func (s *Searcher) processBuilds(flakesCh chan Build, buildsCh chan []atc.Build,
 }
 
 func isOneOff(build atc.Build) bool {
-	return build.PipelineName == "" && build.JobName == ""
+	return build.JobName == ""
 }
 
 func (s *Searcher) processBuild(flakesCh chan Build, build atc.Build, spec SearchSpec) error {
