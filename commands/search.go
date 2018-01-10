@@ -14,6 +14,13 @@ var SearchCommand = cli.Command{
 	Usage:       "search <arguments>",
 	Description: "Searches for flakes",
 
+	Flags: []cli.Flag{
+		cli.BoolFlag{
+			Name:  "show-one-offs",
+			Usage: "If set one off failures will be reported as well",
+		},
+	},
+
 	Action: func(ctx *cli.Context) error {
 		if ctx.Args().First() == "" {
 			return cli.NewExitError("need to provide a pattern", 1)
@@ -24,6 +31,10 @@ var SearchCommand = cli.Command{
 		searcher := hunter.NewSearcher(client)
 		spec := hunter.SearchSpec{
 			Pattern: ctx.Args().First(),
+		}
+
+		if ctx.Bool("show-one-offs") {
+			spec.ShowOneOffs = true
 		}
 		builds := searcher.Search(spec)
 

@@ -17,7 +17,8 @@ const (
 )
 
 type SearchSpec struct {
-	Pattern string
+	Pattern     string
+	ShowOneOffs bool
 }
 
 type Searcher struct {
@@ -68,12 +69,20 @@ func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page,
 func (s *Searcher) processBuilds(flakesCh chan Build, buildsCh chan []atc.Build, spec SearchSpec) {
 	for builds := range buildsCh {
 		for _, build := range builds {
+			if !spec.ShowOneOffs && isOneOff(build) {
+				continue
+			}
+
 			if err := s.processBuild(flakesCh, build, spec); err != nil {
 				println(err.Error())
 				continue
 			}
 		}
 	}
+}
+
+func isOneOff(build atc.Build) bool {
+	return build.PipelineName == "" && build.JobName == ""
 }
 
 func (s *Searcher) processBuild(flakesCh chan Build, build atc.Build, spec SearchSpec) error {
