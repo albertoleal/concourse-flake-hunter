@@ -34,6 +34,7 @@ func main() {
 
 	hunter.Commands = []cli.Command{
 		commands.SearchCommand,
+		commands.AggregateCommand,
 	}
 
 	hunter.Before = func(ctx *cli.Context) error {
