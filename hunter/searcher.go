@@ -100,9 +100,12 @@ func (s *Searcher) processBuild(flakesCh chan Build, build atc.Build, spec Searc
 	matches := spec.Pattern.FindAllString(string(events), -1)
 
 	if len(matches) > 0 {
-		concourseURL := fmt.Sprintf("%s%s", s.client.ConcourseURL(), build.URL)
-		b := Build{build, concourseURL, matches}
+		b := Build{build, s.buildBuildURL(build), matches}
 		flakesCh <- b
 	}
 	return nil
+}
+
+func (s *Searcher) buildBuildURL(build atc.Build) string {
+	return fmt.Sprintf("%s/teams/%s/pipelines/%s/jobs/%s/builds/%s", s.client.ConcourseURL(), build.TeamName, build.PipelineName, build.JobName, build.Name)
 }
