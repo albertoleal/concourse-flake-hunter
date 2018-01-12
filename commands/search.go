@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/albertoleal/concourse-flake-hunter/fly"
@@ -35,7 +36,7 @@ var SearchCommand = cli.Command{
 
 		searcher := hunter.NewSearcher(client)
 		spec := hunter.SearchSpec{
-			Pattern: ctx.Args().First(),
+			Pattern: regexp.MustCompile(ctx.Args().First()),
 		}
 
 		if ctx.Bool("show-one-offs") {

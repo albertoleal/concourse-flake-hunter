@@ -17,7 +17,7 @@ const (
 )
 
 type SearchSpec struct {
-	Pattern     string
+	Pattern     *regexp.Regexp
 	ShowOneOffs bool
 }
 
@@ -27,8 +27,8 @@ type Searcher struct {
 
 type Build struct {
 	atc.Build
-
 	ConcourseURL string
+	Matches      []string
 }
 
 func NewSearcher(client fly.Client) *Searcher {
@@ -97,14 +97,11 @@ func (s *Searcher) processBuild(flakesCh chan Build, build atc.Build, spec Searc
 		return errors.New("Failed to get build events")
 	}
 
-	ok, err := regexp.Match(spec.Pattern, events)
-	if err != nil {
-		return fmt.Errorf("Error while matching build output against pattern '%s'", spec.Pattern)
-	}
+	matches := spec.Pattern.FindAllString(string(events), -1)
 
-	if ok {
+	if len(matches) > 0 {
 		concourseURL := fmt.Sprintf("%s%s", s.client.ConcourseURL(), build.URL)
-		b := Build{build, concourseURL}
+		b := Build{build, concourseURL, matches}
 		flakesCh <- b
 	}
 	return nil
