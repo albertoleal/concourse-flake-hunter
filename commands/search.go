@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/albertoleal/concourse-flake-hunter/fly"
-	"github.com/albertoleal/concourse-flake-hunter/hunter"
+	"github.com/masters-of-cats/concourse-flake-hunter/fly"
+	"github.com/masters-of-cats/concourse-flake-hunter/hunter"
 	"github.com/urfave/cli"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/albertoleal/concourse-flake-hunter/fly"
+	"github.com/masters-of-cats/concourse-flake-hunter/fly"
 	"github.com/concourse/go-concourse/concourse"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

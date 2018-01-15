@@ -1,4 +1,4 @@
-package: github.com/albertoleal/concourse-flake-hunter
+package: github.com/masters-of-cats/concourse-flake-hunter
 import:
 - package: github.com/concourse/atc
   subpackages:

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/albertoleal/concourse-flake-hunter/fly/flyfakes"
-	"github.com/albertoleal/concourse-flake-hunter/hunter"
+	"github.com/masters-of-cats/concourse-flake-hunter/fly/flyfakes"
+	"github.com/masters-of-cats/concourse-flake-hunter/hunter"
 	"github.com/concourse/atc"
 	"github.com/concourse/go-concourse/concourse"
 

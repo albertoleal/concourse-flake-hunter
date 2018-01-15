@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/albertoleal/concourse-flake-hunter/hunter"
+	"github.com/masters-of-cats/concourse-flake-hunter/hunter"
 	"github.com/concourse/atc"
 
 	. "github.com/onsi/ginkgo"

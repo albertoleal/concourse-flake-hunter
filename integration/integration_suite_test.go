@@ -1,7 +1,7 @@
 package integration_test
 
 import (
-	"github.com/albertoleal/concourse-flake-hunter/integration/runner"
+	"github.com/masters-of-cats/concourse-flake-hunter/integration/runner"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -24,7 +24,7 @@ func TestConcourseFlakeHunter(t *testing.T) {
 	SynchronizedBeforeSuite(func() []byte {
 		var err error
 
-		binPath, err := gexec.Build("github.com/albertoleal/concourse-flake-hunter")
+		binPath, err := gexec.Build("github.com/masters-of-cats/concourse-flake-hunter")
 		Expect(err).NotTo(HaveOccurred())
 
 		return []byte(binPath)

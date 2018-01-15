@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/albertoleal/concourse-flake-hunter/hunter"
+	"github.com/masters-of-cats/concourse-flake-hunter/hunter"
 )
 
 func age(build hunter.Build) int {
