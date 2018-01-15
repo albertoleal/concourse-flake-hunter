@@ -34,6 +34,11 @@ var AggregateCommand = cli.Command{
 			Usage: "Lists builds that failed in the last n hours",
 			Value: -1,
 		},
+		cli.IntFlag{
+			Name:  "threshold, t",
+			Usage: "Defines a test as a flake it if fails at least n times",
+			Value: 3,
+		},
 	},
 
 	Action: func(ctx *cli.Context) error {
@@ -62,7 +67,7 @@ var AggregateCommand = cli.Command{
 			}
 		}
 
-		aggregator.printEntries()
+		aggregator.printEntries(ctx.Int("threshold"))
 		return nil
 	},
 }
@@ -91,9 +96,9 @@ func (a *Aggregator) addFailure(failure *Failure) {
 	}
 }
 
-func (a *Aggregator) printEntries() {
+func (a *Aggregator) printEntries(threshold int) {
 	for description, info := range a.failuresInfo {
-		if info.Count < 3 {
+		if info.Count < threshold {
 			continue
 		}
 		fmt.Println(description)
