@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/masters-of-cats/concourse-flake-hunter/fly"
+	"github.com/albertoleal/concourse-flake-hunter/fly"
 	"github.com/concourse/atc"
 	"github.com/concourse/go-concourse/concourse"
 )
