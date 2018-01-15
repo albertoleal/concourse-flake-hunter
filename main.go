@@ -29,7 +29,8 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "team-name, n",
-			Usage: "Password for basic auth",
+			Usage: "Team to authenticate with",
+			Value: "main",
 		},
 	}
 
