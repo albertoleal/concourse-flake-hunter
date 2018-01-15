@@ -23,8 +23,9 @@ func main() {
 			Usage: "Username for basic auth",
 		},
 		cli.StringFlag{
-			Name:  "password, p",
-			Usage: "Password for basic auth",
+			Name:   "password, p",
+			Usage:  "Password for basic auth",
+			EnvVar: "CONCOURSE_BASIC_AUTH_PW",
 		},
 		cli.StringFlag{
 			Name:  "team-name, n",
