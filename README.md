@@ -17,6 +17,7 @@ concourse-flake-hunter
 The following command will search for "connection reset":
 
 `concourse-flake-hunter -c https://my.concourse.com -u <username> -p <password> -n <team-name> search "connection reset"`
+
 `CONCOURSE_BASIC_AUTH_PW=s3cr3t concourse-flake-hunter -c https://my.concourse.com -u <username> -n <team-name> search "connection reset"`
 
 The outlook will look like the following:
