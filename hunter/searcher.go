@@ -55,7 +55,7 @@ func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page,
 		go s.processBuilds(flakesChan, buildsChan, spec)
 	}
 
-	for ; pages.Next != nil; page = *pages.Next {
+	for ; ; page = *pages.Next {
 		builds, pages, err = s.client.Builds(page)
 		if err != nil {
 			println(err.Error())
@@ -63,6 +63,9 @@ func (s *Searcher) getBuildsFromPage(flakesChan chan Build, page concourse.Page,
 		}
 
 		buildsChan <- builds
+		if pages.Next == nil {
+			break
+		}
 	}
 }
 
