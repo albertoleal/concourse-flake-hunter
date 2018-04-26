@@ -19,6 +19,7 @@ type Team interface {
 	DestroyTeam(teamName string) error
 
 	Pipeline(name string) (atc.Pipeline, bool, error)
+	PipelineBuilds(pipelineName string, page Page) ([]atc.Build, Pagination, bool, error)
 	DeletePipeline(pipelineName string) (bool, error)
 	PausePipeline(pipelineName string) (bool, error)
 	UnpausePipeline(pipelineName string) (bool, error)
@@ -50,6 +51,12 @@ type Team interface {
 
 	BuildsWithVersionAsInput(pipelineName string, resourceName string, resourceVersionID int) ([]atc.Build, bool, error)
 	BuildsWithVersionAsOutput(pipelineName string, resourceName string, resourceVersionID int) ([]atc.Build, bool, error)
+
+	ListContainers(queryList map[string]string) ([]atc.Container, error)
+	ListVolumes() ([]atc.Volume, error)
+	CreateBuild(plan atc.Plan) (atc.Build, error)
+	Builds(page Page) ([]atc.Build, Pagination, error)
+	OrderingPipelines(pipelineNames []string) error
 }
 
 type team struct {

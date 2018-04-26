@@ -343,8 +343,9 @@ type TaskRunConfig struct {
 }
 
 type TaskInputConfig struct {
-	Name string `json:"name" yaml:"name"`
-	Path string `json:"path,omitempty" yaml:"path"`
+	Name     string `json:"name" yaml:"name"`
+	Path     string `json:"path,omitempty" yaml:"path,omitempty"`
+	Optional bool   `json:"optional,omitempty" yaml:"optional,omitempty"`
 }
 
 func (input TaskInputConfig) resolvePath() string {
@@ -356,7 +357,7 @@ func (input TaskInputConfig) resolvePath() string {
 
 type TaskOutputConfig struct {
 	Name string `json:"name" yaml:"name"`
-	Path string `json:"path,omitempty" yaml:"path"`
+	Path string `json:"path,omitempty" yaml:"path,omitempty"`
 }
 
 func (output TaskOutputConfig) resolvePath() string {
